@@ -1,0 +1,55 @@
+// protoc -I proto/ --go_out=plugins=grpc:. proto/communication.proto
+
+/*
+protoc -I/usr/local/include -I. \
+  -I$GOPATH/src \
+  -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+  --go_out=plugins=grpc:. \
+  --grpc-gateway_out=logtostderr=true:. \
+  --swagger_out=logtostderr=true,repeated_path_param_separator=ssv:. \
+  proto/communication.proto
+ */
+
+syntax = "proto3";
+package proto;
+
+import "google/api/annotations.proto";
+
+// Директория_где_лежит_файл/; названиеФайла_названиеПакета
+option go_package = "proto/;communication_proto";
+
+service Demo {
+  rpc ServerVersion(EmptyRequest) returns (VersionReply) {
+    option (google.api.http) = {
+      get: "/v1/version"
+    };
+  }
+
+  // Просмотр стрима видео
+  //
+  // Начинает просмотре стриммингового видео
+  rpc Watch(VideoRequest) returns (stream VideoReply) {
+    option (google.api.http) = {
+      get: "/v1/watch/{id}"
+      additional_bindings: [
+        {
+          post: "/v1/watch/{id}"
+          body: "*"
+        }
+      ]
+    };
+  }
+}
+
+message EmptyRequest {}
+message VersionReply {
+  string version = 1;
+}
+
+message VideoRequest {
+  // ID видео стрим которого требуется отдать
+  string id = 1;
+}
+message VideoReply {
+  bytes block = 1;
+}
